@@ -824,12 +824,4 @@ where sport in ('judo','taekwondo')
 group by 1
 order by 2 desc
 limit 1
-2.2.12.	Self Join
-66.	Cho biết tên những VDV có tháng và năm sinh trùng nhau.
-SELECT X.name, EXTRACT(month FROM X.date_of_birth) monthX, EXTRACT(year FROM X.date_of_birth) yearX,
-      Y.name, EXTRACT(month FROM Y.date_of_birth) monthY, EXTRACT(year FROM X.date_of_birth) yearY
-FROM `atheletes.athletes` X INNER JOIN `atheletes.athletes`Y
-      ON    EXTRACT(month FROM X.date_of_birth)=EXTRACT(month FROM Y.date_of_birth)
-      AND      EXTRACT(year FROM X.date_of_birth)=EXTRACT(year FROM Y.date_of_birth)
-WHERE X.name <> Y.name      
-ORDER BY 2, 3
+
