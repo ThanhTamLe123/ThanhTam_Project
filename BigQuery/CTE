@@ -1,0 +1,241 @@
+4.2.	Athletes
+Yêu cầu: Các câu trong phần này, nếu được, ngoài cách sử dụng CTE, học viên có thể viết thêm cách khác mà không sử dụng CTE. 
+11.	Gọi X là danh sách các nước có VDV đạt huy chương bạc đã được sắp xếp tăng hoặc giảm dần) theo số lượng VDV đạt huy chương bạc. Liệt kê các nước có huy chương bạc nhưng không nằm trong 10 nước có số lượng VDV đạt huy chương bạc nhiều nhất và cũng không nằm trong 10 nước có  số lượng VDV đạt huy chương bạc ít nhất.
+WITH CTE1
+AS
+(
+  SELECT nationality,COUNT(*)
+  FROM `atheletes.athletes` 
+  WHERE silver>0
+  GROUP BY 1
+  ORDER BY 2 LIMIT 10
+),
+CTE2
+AS
+(
+  SELECT nationality,COUNT(*)
+  FROM `atheletes.athletes` 
+  WHERE silver>0
+  GROUP BY 1
+  ORDER BY 2 DESC LIMIT 10
+)
+SELECT DISTINCT nationality
+FROM `atheletes.athletes` 
+WHERE nationality NOT IN (SELECT nationality
+                          FROM CTE1)
+AND nationality NOT IN (SELECT nationality
+                          FROM CTE2)
+12.	Cho biết số lượng VDV nữ của nước Quatar (QAT)) có đông hơn số lượng VDV nữ của nước Ghana (GHA) hay không? Trả lời có hoặc không.
+WITH CTE1
+AS
+(
+  SELECT COUNTIF(sex='female')AS NU_QAT
+  FROM `atheletes.athletes`
+  WHERE nationality='QAT'
+),
+CTE2
+AS
+(
+  SELECT COUNTIF(sex='female') AS NU_GHA
+  FROM `atheletes.athletes`
+  WHERE nationality='GHA'
+)
+SELECT DISTINCT IF('CTE1'>'CTE2','Co','Khong') AS TRA_LOI
+FROM `atheletes.athletes`
+13.	Cho biết tên những môn thi (sport) mà Việt Nam không tham gia.
+WITH CTE1
+AS 
+(
+  SELECT sport
+  FROM `atheletes.athletes`
+  WHERE nationality='VIE'
+)
+SELECT DISTINCT sport
+FROM `atheletes.athletes`
+WHERE sport NOT IN (
+                    SELECT sport
+                    FROM CTE1
+                    )
+14.	Gọi R là tỷ lệ VDV có giải/tổng số VDV tham dự của mỗi nước trong môn fencing (vượt rào). Cho biết 3 nước có tỷ lệ R là cao nhất.
+WITH TB
+AS
+(
+  SELECT DISTINCT nationality,ROUND(COUNTIF(total>0)/COUNT(*))AS R
+  FROM `atheletes.athletes`
+  WHERE sport='fencing'
+  GROUP BY 1
+)
+SELECT nationality,R
+FROM TB
+ORDER BY 2 DESC
+LIMIT 3
+15.	Cho biết nước có tỷ lệ VDV nữ/VDV nam là thấp nhất.
+WITH CTE1
+AS
+(
+  SELECT DISTINCT nationality, ROUND((IF(COUNTIF(sex = 'female') > 0, COUNTIF(sex = 'female'), NULL) / IF(COUNTIF(sex = 'male') > 0, COUNTIF(sex = 'male'), NULL)),1) AS R
+  FROM `atheletes.athletes`
+  GROUP BY 1
+)
+SELECT nationality,R
+FROM CTE1
+WHERE R IS NOT NULL
+ORDER BY 2
+LIMIT 1
+16.	Thống kê số lượng VDV nam, nữ theo từng môn thi đấu (sport), sau đó chọn ra 5 môn có số lượng nữ và 5 môn có số lượng nam tham gia là nhiều nhất.
+Minh họa kết quả cần thực hiện
+WITH CTE1
+AS     
+(
+  SELECT sport,COUNTIF(sex='female') AS VDV_NU,COUNTIF(sex='male') AS VDV_NAM
+  FROM `atheletes.athletes`
+  GROUP BY 1
+  ORDER BY 2 DESC,3 DESC
+  LIMIT 5
+)	 
+SELECT sport,VDV_NU,VDV_NAM
+FROM CTE1
+
+Câu 14	Câu 15	Câu 16
+17.	(*)Cho biết những nước tham gia thi đấu tất cả những môn mà đoàn nước Ma rốc (MAR – moroccan) đã tham gia
+4.3.	Data Science salary
+18.	Cho biết số lượng của từng EmploymentType có trong mỗi loại CompanySize. Kết quả như minh họa sau:
+WITH CTE1
+AS 
+(
+  SELECT CompanySize,
+         COUNTIF(EmploymentType='FT') AS NumOfFT,
+         COUNTIF(EmploymentType='CT') AS NumOfCT,
+         COUNTIF(EmploymentType='FL') AS NumOfFL,
+         COUNTIF(EmploymentType='PT') AS NumOfPT,
+  FROM `DS_SALARY.DS_Salary` 
+  GROUP BY 1
+)
+SELECT SizeName,NumOfFT,NumOfCT,NumOfFL,NumOfPT
+FROM CTE1
+JOIN `DS_SALARY.CompanySize` X ON CTE1.CompanySize=X.Size
+GROUP BY SizeName,NumOfFT,NumOfCT,NumOfFL,NumOfPT
+ORDER BY 1 DESC
+19.	Trong các EmploymentType ở Ấn Độ (EmployeeResidence= ‘IN’), cho biết EmploymentType nào có số lượng là nhiều nhất và EmploymentType nào có số lượng là ít nhất?
+(a).-	 Trường hợp chỉ lấy 1 dòng có số lượng nhiều (hoặc ít) nhất làm đại diện.
+max_employmenttype	min_employmenttype
+FT	PT
+WITH CTE1
+AS 
+(
+  SELECT X.EmploymentType,COUNT(*) AS SL_NV
+  FROM `DS_SALARY.EmploymentType` X
+  JOIN `DS_SALARY.DS_Salary` Y ON X.EmploymentType=Y.EmploymentType
+  WHERE Y.EmployeeResidence='IN'
+  GROUP BY 1
+
+)
+SELECT MAX_BY(EmploymentType,SL_NV) AS Max_EmploymentType, MIN_BY(EmploymentType,SL_NV) AS Min_EmploymentType
+FROM CTE1
+
+
+(b).-	Trường hợp lấy tất cả các dòng cùng có số lượng nhiều (hoặc ít) nhất 
+max_type	min_type
+Full-time	null
+null	Part-time employees
+null	Freelancer
+null	Consultants
+
+WITH CTE1
+AS 
+(
+  SELECT X.EmploymentType,COUNT(*) AS SL_NV
+  FROM `DS_SALARY.EmploymentType` X
+  JOIN `DS_SALARY.DS_Salary` Y ON X.EmploymentType=Y.EmploymentType
+  WHERE Y.EmployeeResidence='IN'
+  GROUP BY 1
+
+)
+SELECT MAX_BY(EmploymentTypeName,SL_NV) AS Max_EmploymentType, MIN_BY(EmploymentTypeName,SL_NV) AS Min_EmploymentType
+FROM CTE1 
+JOIN `DS_SALARY.EmploymentType` X ON CTE1.EmploymentType=X.EmploymentType
+
+20.	Trong các JobTitleName ở Anh (EmployeeResidence= ‘GB’), cho biết JobTitleName có lương bình quân là thấp nhất?
+WITH CTE1
+AS
+(
+  SELECT JobTitleName,AVG(SalaryInUsd) AS AVG_Salary
+  FROM `DS_SALARY.JobTitles` X
+  JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
+  WHERE Y.EmployeeResidence='GB'
+  GROUP BY 1
+  ORDER BY 2 
+  LIMIT 1
+)
+SELECT JobTitleName,AVG_Salary
+FROM CTE1
+21.	Thống kê tỷ lệ NV làm việc online (dựa trên field Remote Ratio) của từng mức kinh nghiệm của nhân viên (Experience).
+WITH CTE1
+AS
+(
+  SELECT ExperienceLevel,
+          ROUND(COUNTIF(REMOTERATIO = 100)/ COUNT(*) * 100, 1) AS FULL_ONLINE,
+          ROUND(COUNTIF(REMOTERATIO = 50)/ COUNT(*) * 100, 1) AS HALF_ONLINE,
+          ROUND(COUNTIF(REMOTERATIO = 0)/ COUNT(*) * 100, 1) AS OFFLINE,
+  FROM `DS_SALARY.DS_Salary`
+  GROUP BY 1
+)
+SELECT ExperienceLevel,FULL_ONLINE,HALF_ONLINE,OFFLINE
+FROM CTE1
+22.	Nếu xem EmployeeResidence là nơi cư trú của người lao động. Nơi cư trú nào mà mức chênh lệch tiền lương giữa người có mức lương cao nhất và người có lương thấp nhất (dựa trên SalaryInUSD) là lớn nhất.
+WITH CTE1
+AS 
+(
+  SELECT EmployeeResidence, MAX(SalaryInUSD)-MIN(SalaryInUSD) AS CHENH_LECH
+  FROM `DS_SALARY.DS_Salary`
+  GROUP BY 1
+)
+SELECT EmployeeResidence, CHENH_LECH
+FROM CTE1
+ORDER BY 2 DESC
+LIMIT 1
+23.	Cho biết lương của JobTitleName là “Data Analyst’ ở Ấn Độ (Employee=’IN’) có cao hơn cùng chức danh đó nhưng ở Anh (‘GB’) hay không?
+WITH CTE1
+AS 
+(
+  SELECT JobTitleName,MAX(SalaryInUSD) AS SALARY_IN
+  FROM `DS_SALARY.DS_Salary` X
+  JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
+  WHERE JobTitleName='Data Analyst' AND EmployeeResidence='IN'
+  GROUP BY 1
+),
+CTE2
+AS 
+(
+  SELECT JobTitleName,MAX(SalaryInUSD) AS SALARY_GB
+  FROM `DS_SALARY.DS_Salary` X
+  JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
+  WHERE JobTitleName='Data Analyst' AND EmployeeResidence='GB'
+  GROUP BY 1
+)
+SELECT IF((SELECT CTE1.SALARY_IN FROM CTE1)>(SELECT CTE2.SALARY_GB FROM CTE2),'CO','KHONG') AS TRA_LOI
+
+24.	Cho biết tên nước nào có chênh lệch giữa lương cao nhất và lương thấp nhất là lớn nhất.
+WITH CTE1
+AS 
+(
+  SELECT name, MAX(SalaryInUSD)-MIN(SalaryInUSD) AS CHENH_LECH
+  FROM `DS_SALARY.DS_Salary`X
+  JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+  GROUP BY 1
+)
+SELECT name, CHENH_LECH
+FROM CTE1
+ORDER BY 2 DESC
+LIMIT 1
+25.	Cho biết tỷ lệ của từng loại Experience so với tổng số khảo sát chỉ tính cho những công ty có văn phòng đóng tại Mỹ (Company Location=’US’).
+WITH CTE 
+AS (SELECT  COUNTIF (ExperienceLevel = 'EN') / COUNT (*) AS EN_ratio,
+            COUNTIF (ExperienceLevel = 'MI') / COUNT (*) AS MI_ratio,
+            COUNTIF (ExperienceLevel = 'SE') / COUNT (*) AS SE_ratio,
+            COUNTIF (ExperienceLevel = 'EX') / COUNT (*) AS EX_ratio,
+FROM `DS_SALARY.DS_Salary`
+WHERE CompanyLocation= 'US')
+
+SELECT EN_ratio, MI_ratio, SE_ratio, EX_ratio
+FROM CTE
