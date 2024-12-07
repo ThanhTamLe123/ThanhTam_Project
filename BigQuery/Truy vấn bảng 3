@@ -1,0 +1,380 @@
+2.2.9.	Conditional expressions
+Yêu cầu: sử dụng tất cả các biểu thức điều kiện (CASE, IF, …) mà học viên biết để xử lý cho các câu sau đây:
+--43.	Cho biết VDV với name= Kelsi Worrell có đạt huy chương vàng môn aquatics (sport= aquatics) hay không? Trả lời ‘Có’ hoặc ‘không’.
+--CACH 1:
+SELECT IF(COUNT(*)>0,'Co','Khong')
+FROM  `sql294-423705.atheletes.athletes`
+WHERE name='Kelsi Worrell' and gold > 0 and sport='aquatics'
+--CACH 2:
+SELECT CASE WHEN COUNT(*)>0 THEN 'Co' ELSE 'Khong' END
+FROM  `sql294-423705.atheletes.athletes`
+WHERE name='Kelsi Worrell' and gold > 0 and sport='aquatics'
+--44.	Cho biết VĐV ‘Hoang Xuan Vinh’ của Việt Nam có đạt được huy hương vàng môn bắn súng (shooting) hay không? Trả lời ‘Có’ hoặc ‘không’.
+SELECT name, nationality, sport, gold
+FROM `sql123-1106.athelete.athelete`
+WHERE name='Hoang Xuan Vinh' and nationality='VIE' and gold>0 and sport='shooting'
+--45.	Cho biết tỷ lệ VDV nữ có giải / số lượng VDV nam có giải của Việt Nam (VIE) có lớn hơn 40% hay không? Trả lời ‘Có’ hoặc ‘không’.
+--46.	Cho biết tên nước, số lượng nam, số lượng nữ theo hình minh họa sau:
+nationality	soluongnu	soluongnam
+--CACH 1:
+SELECT distinct nationality, countif(sex='male') as nam, countif(sex='female') as nu
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 1 DESC
+--CACH 2:
+SELECT distinct nationality,count(sex) AS GTNU
+FROM `sql294-423705.atheletes.athletes`
+WHERE sex='female'
+GROUP BY 1
+ORDER BY 1 DESC 
+SELECT distinct nationality,count(sex) AS GTNam
+FROM `sql294-423705.atheletes.athletes`
+WHERE sex='male'
+GROUP BY 1
+ORDER BY 1 DESC
+--CACH 3:
+SELECT distinct nationality, SUM(sex)
+FROM `sql294-423705.atheletes.athletes` 
+GROUP BY 1
+ORDER BY 1 DESC
+--47.	Cho biết số lượng VDV tham gia theo từng nhóm tuổi: dưới 14, từ 15-16, từ 17-18, từ 19-22 và trên 22 của mỗi nước. Thông tin gồm nationality, LessThan14, From15To16, From17To18, From19To22, OlderThan22. Gợi ý: dựa trên năm sinh và năm tham gia (2016).
+--CACH 1
+SELECT distinct nationality, countif(age < 14) as duoi14, countif(age between 15 and 16) as tu15_16 , countif(age between 17 and 18) as tu17_18, countif(age between 19 and 22) as tu19_22, countif(age >22) as tren22
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+--CACH 2
+/* tuoi duoi 14*/
+SELECT DISTINCT nationality, COUNT(age) as tuoiduoi14
+FROM `sql123-1106.athelete.athelete`
+WHERE age<14
+GROUP BY 1
+/* tuoi tu  15 den 16*/
+SELECT DISTINCT nationality, COUNT(age) as tuoi15_16
+FROM `sql123-1106.athelete.athelete`
+WHERE age between 15 and 16 
+GROUP BY 1
+/* tuoi tu  17 den 18*/
+SELECT DISTINCT nationality, COUNT(age) as tuoi17_18
+FROM `sql123-1106.athelete.athelete`
+WHERE age between 17 and 18 
+GROUP BY 1
+/* tuoi tu  19 den 22*/
+SELECT DISTINCT nationality, COUNT(age) as tuoi19_22
+FROM `sql123-1106.athelete.athelete`
+WHERE age between 19 and 22 
+GROUP BY 1
+/* tuoi tren 22*/
+SELECT DISTINCT nationality, COUNT(age) as tuoitren22
+FROM `sql123-1106.athelete.athelete`
+WHERE age>22
+GROUP BY 1
+--CACH 3:
+/* TUOI DUOI 14*/
+SELECT DISTINCT nationality, SUM(age) 
+FROM `sql123-1106.athelete.athelete`
+WHERE age<14
+GROUP BY 1
+/* TUOI TU 15 DEN 16*/
+SELECT DISTINCT nationality, SUM(age) AS TUOI15_16
+FROM `sql123-1106.athelete.athelete`
+WHERE age BETWEEN 15 AND 16
+GROUP BY 1
+/* TUOI TU 17 DEN 18*/
+SELECT DISTINCT nationality, SUM(age) AS TUOI17_18
+FROM `sql123-1106.athelete.athelete`
+WHERE age BETWEEN 17 AND 18
+GROUP BY 1
+/* TUOI TU 19 DEN 22*/
+SELECT DISTINCT nationality, SUM(age) AS TUOI19_22
+FROM `sql123-1106.athelete.athelete`
+WHERE age BETWEEN 19 AND 22
+GROUP BY 1
+/* TUOI TREN 22*/
+SELECT DISTINCT nationality, SUM(age) AS TUOITREN22
+FROM `sql123-1106.athelete.athelete`
+WHERE age> 22
+GROUP BY 1
+--48.	Thực hiện thống kê gồm tên nước, số lượng VDV nữ đạt huy chương vàng của nước đó, tương tự cho huy chương bạc và đồng. Kết quả sắp xếp giảm dần theo số lượng VDV đạt huy chương vàng. nationality	FemaleWithGold	FemaleWithSilver	FemaleWithBronze
+--CACH 1:
+SELECT distinct nationality, COUNTIF(sex='female' and gold>0) as HCV,  COUNTIF(sex='female' and silver>0) as HCB,  COUNTIF(sex='female' and bronze>0) as HCD
+FROM `sql294-423705.atheletes.athletes`
+group by 1
+ORDER by 2 desc,3 desc,4 desc
+--CACH 2:***
+SELECT  nationality, COUNT(sex) AS NU, COUNT(gold)AS HCV, COUNT(silver) AS HCB, COUNT(bronze) AS HCD
+FROM `sql123-1106.athelete.athelete`
+WHERE sex='female' and gold >0 AND silver>0 AND bronze>0
+GROUP BY 1
+ORDER BY 3 DESC,4 DESC, 5 DESC
+-- CACH 3:
+SELECT DISTINCT nationality, COUNT(sex) AS NU, SUM(gold)AS HCV, SUM(silver) AS HCB, SUM(bronze) AS HCD
+FROM `sql123-1106.athelete.athelete`
+WHERE sex='female' and gold >0 AND silver>0 AND bronze>0
+GROUP BY 1
+ORDER BY 3 DESC,4 DESC, 5 DESC
+2.2.10.	Subquery
+--49.	Có bao nhiêu nước trong danh sách. Yêu cầu viết bằng 2 cách: có và không có sử dụng subquery
+--CACH 1
+SELECT count(distinct nationality)
+FROM `sql294-423705.atheletes.athletes`
+--CACH 2:***
+SELECT COUNT(*) AS TRA_LOI
+FROM (
+  SELECT DISTINCT NATIONALITY
+  FROM `sql294-423705.atheletes.athletes`
+)
+--50.	Cho biết tên và số lượng huy chương vàng của những VDV mà những VDV này có số huy chương vàng nhiều hơn VDV có tên là ‘Usain Bolt’.
+--CACH 1:
+SELECT name, GOLD
+FROM `sql294-423705.atheletes.athletes`
+WHERE gold>(
+  SELECT count(gold) as HCV
+FROM `sql294-423705.atheletes.athletes`
+WHERE name='Usain Bolt'
+)
+GROUP BY 1,2
+-- CACH 2:
+SELECT name, gold
+FROM `sql294-423705.atheletes.athletes`
+WHERE (name not like 'Usain Bolt')>(name like 'Usain Bolt')
+GROUP BY 1,2
+--51.	Cho biết tên và chiều cao của 4 VDV có chiều cao là cao nhất trong tất cả các VDV. Nếu có nhiều VDV cùng có chiều cao như VDV thứ 4 thì lấy tất cả những người này (khi đó danh sách kết quả có thể có nhiều hơn 4 VDV).
+-- CACH 1:
+SELECT name, MAX(height)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 4
+--CACH 2:***
+SELECT name, height
+FROM `sql294-423705.atheletes.athletes`
+WHERE   height>= (
+  select  height
+  from `sql294-423705.atheletes.athletes`
+  order by 1 desc
+  limit 1 offset 3
+)
+order by 2 desc
+--52.	Cho biết tên nước, số lượng huy chương đồng mà nước đó đạt được giống như số lượng huy chương đồng mà nước Hàn Quốc (KOR) đã đạt. Yêu cầu kết quả không có tên nước Hàn Quốc
+-- CACH 1:
+SELECT nationality, sum(bronze) as hcd
+FROM `sql294-423705.atheletes.athletes`
+WHERE nationality != 'KOR'
+GROUP BY 1
+having hcd=(SELECT sum(bronze)
+FROM `sql294-423705.atheletes.athletes`
+WHERE  nationality='KOR')
+
+2.2.11.	Lớn/nhỏ nhất
+	Lần lượt thực hiện các truy vấn trong phần này bằng 2 cách:
+•	Sử dụng LIMIT.
+•	Sử dụng sub query.
+Dựa trên kết quả truy vấn để thấy được ưu điểm của mỗi cách viết truy vấn.
+--53.	Cho biết tên những nước có vận động nhỏ tuổi nhất trong tất cả các VDV tham gia.
+-- CACH 1
+SELECT nationality, MIN(age)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 ASC
+limit 1
+-- CACH 2
+SELECT nationality, age
+FROM `sql294-423705.atheletes.athletes`
+WHERE age=(SELECT MIN(age)
+from `sql294-423705.atheletes.athletes`)
+ORDER BY 2 DESC
+
+--54.	Cho biết tên những VDV nước Mỹ có chiều cao là cao nhất trong số tất cả các VDV tham dự name	nationality	height
+--CACH 1:
+SELECT name,  max(height)
+FROM `sql294-423705.atheletes.athletes`
+WHERE nationality='USA'
+GROUP BY 1  
+ORDER BY 2 DESC
+limit 1
+--CACH 2:
+SELECT name, height
+FROM `sql294-423705.atheletes.athletes`
+WHERE height=(SELECT MAX(HEIGHT)
+FROM `sql294-423705.atheletes.athletes`
+WHERE nationality='USA')
+ORDER BY 2 DESC
+--55.	Cho biết tên những VDV có chiều cao thấp nhất trong số những VDV đạt huy chương. Minh họa kết quả cần thực hiện: name	nationality	height	total
+SELECT name,nationality, min(height) , total
+FROM `sql294-423705.atheletes.athletes`
+WHERE total>0
+GROUP BY 1,2,4
+ORDER BY 3 asc
+LIMIT 1 
+--CACH 2:
+SELECT name, nationality, height, total
+FROM `sql294-423705.atheletes.athletes`
+WHERE height=(SELECT MIN(height)
+from `sql294-423705.atheletes.athletes`
+where total>0)
+
+--56.	Cho biết tên những nước và số lượng VDV nữ của nước đó đạt được huy chương vàng nhiều nhất so với các nước khác.
+--CACH 1:
+SELECT nationality,countif(sex='female' and gold >0) AS NU
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1
+--CACH 2:***
+SELECT nationality, COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+WHERE sex='female' and gold >0
+GROUP BY 1
+HAVING COUNT(*)=
+(select COUNT(*)
+from `sql294-423705.atheletes.athletes`
+WHERE sex='female' and gold >0
+GROUP BY NATIONALITY
+order by 1 desc
+limit 1
+)
+
+
+--57.	Cho biết tên VDV có chiều cao thấp hơn chiều cao trung bình của tất cả VDV nước Mỹ.
+-- CACH 2:***
+SELECT  AVG(height)
+FROM `sql123-1106.athelete.athelete`
+WHERE nationality='USA'
+SELECT distinct name, height
+FROM `sql294-423705.atheletes.athletes`
+WHERE height<(SELECT avg(height)
+from `sql294-423705.atheletes.athletes`
+where nationality='USA')
+
+--58.	Cho biết tên VDV Việt nam có chiều cao cao hơn chiều cao trung bình của tất cả VDV nước Mỹ.
+-- CACH 1:
+SELECT name, nationality, height
+FROM `sql294-423705.atheletes.athletes`
+WHERE nationality='VIE' AND height>(select AVG(height)
+from `sql294-423705.atheletes.athletes`
+where nationality='USA')
+--59.	Cho biết tên nước có nhiều huy chương vàng nhất.
+-- CACH 1:
+SELECT nationality, sum(gold)
+FROM `sql294-423705.atheletes.athletes`
+group by 1
+having sum(gold)=(SELECT sum(gold)
+from `sql294-423705.atheletes.athletes`
+group by nationality
+order by 1 desc
+limit 1)
+-- CACH 2:
+SELECT nationality, sum(gold) AS HCV
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1
+--60.	Cho biết tên những nước đạt được nhiều huy chương vàng nhất của môn golf.
+-- CACH 1:
+SELECT nationality,SUM(GOLD)
+FROM `sql294-423705.atheletes.athletes`
+WHERE sport='golf'
+GROUP BY 1
+HAVING sum(gold)=(select sum(gold)
+FROM `sql294-423705.atheletes.athletes`
+WHERE sport='golf'
+GROUP BY nationality
+ORDER BY 1 DESC
+LIMIT 1)
+--CACH 2
+SELECT nationality, SUM(gold) as HCV
+FROM `sql294-423705.atheletes.athletes`
+WHERE sport='golf' 
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 2 
+--61.	Cho biết môn thi đấu có nhiều VDV tham gia nhất.
+--CACH 1
+SELECT  SPORT, COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 1
+--CACH 2
+SELECT SPORT, COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+GROUP  BY 1
+HAVING COUNT(*)=(SELECT COUNT(*)
+                FROM `sql294-423705.atheletes.athletes`
+                GROUP BY sport
+                ORDER BY 1 DESC
+                LIMIT 1)
+
+--62.	Cho biết tên những nước tham gia nhiều môn thi đấu (sport) nhất.
+-- CACH 1:
+SELECT MAX_BY(nationality, sport) AS TENNUOC
+FROM `sql294-423705.atheletes.athletes`
+--CACH 2:
+SELECT nationality, COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+HAVING COUNT(*)=(SELECT COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY nationality
+ORDER BY 1 DESC
+LIMIT 1
+)
+--63.	Cho biết tên những nước có nhiều VDV không đạt huy chương nhất
+-- (tức là những VDV này có tên trong dữ liệu nhưng không đạt được bất kỳ huy chương nào trong 3 huy chương gold, silver, bronze).
+--CACH 1
+SELECT nationality, COUNTIF(total <0)
+FROM `sql123-1106.athelete.athelete`
+GROUP BY 1
+--CACH 2
+SELECT nationality, SUM(TOTAL)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+HAVING SUM(TOTAL)=(select SUM(TOTAL)
+from `sql294-423705.atheletes.athletes`
+WHERE total=0
+GROUP BY nationality
+ORDER BY 1 DESC
+LIMIT 1
+)
+--64.	Cho biết tên những nước mà tổng số huy chương vàng của họ lớn hơn tổng số huy chương bạc và đồng cộng lại.
+--CACH 1:
+SELECT nationality,sum(gold ),sum(silver+bronze)
+FROM `sql123-1106.athelete.athelete`
+group by 1
+-- CACH 2:
+SELECT nationality, SUM(GOLD), SUM(silver+bronze)
+FROM `sql294-423705.atheletes.athletes`
+GROUP BY 1
+HAVING SUM(GOLD)>(SELECT sum(silver+bronze)
+from `sql294-423705.atheletes.athletes`
+group BY NATIONALITY
+ORDER BY 1 DESC
+LIMIT 1
+)
+--65.	Cho biết tên nước có số lượng VDV tham gia 2 môn judo và taekwondo là nhiều nhất. 
+-- CACH 1:
+SELECT max_by(nationality, sport)
+FROM `sql123-1106.athelete.athelete`
+WHERE sport='judo' and sport='taekwondo'
+--CACH 2:
+SELECT nationality, COUNTIF(sport ='judo'), countif(sport='taekwondo')
+FROM `sql123-1106.athelete.athelete`
+group by 1 
+-- cach 3
+select nationality, max(sport)
+from `sql123-1106.athelete.athelete`
+where sport='judo' and sport='taekwondo'
+group by 1
+
+SELECT nationality, COUNT(*)
+FROM `sql294-423705.atheletes.athletes`
+WHERE SPORT= 'judo'OR SPORT='taekwondo' -- WHERE SPORT IN ('judo','taekwondo')
+GROUP BY 1
+HAVING COUNT(*)=(
+  SELECT COUNT(*)
+  FROM `sql294-423705.atheletes.athletes`
+  WHERE SPORT= 'judo'OR SPORT='taekwondo'
+  GROUP BY nationality
+  ORDER BY 1 DESC
+  LIMIT 1
+)
