@@ -1,0 +1,220 @@
+6.1.	Athletes
+6.1.1.	Pivot
+(1)-	Tạo thống kê số lượng VDV nam và nữ của từng quốc gia, sắp xếp kết quả giảm dần theo số lượng VDV nữ.
+SELECT *
+FROM (SELECT nationality,sex
+      FROM `atheletes.athletes`)
+PIVOT(COUNT (sex) FOR sex IN ('male','female'))
+ORDER BY female DESC
+
+(2)-	Tạo thống kê số lượng VDV theo từng năm sinh (từ năm 1980 đến năm 1990), sắp xếp kết quả giảm dần theo quốc gia.
+SELECT *
+FROM (SELECT nationality,IF(EXTRACT(YEAR FROM date_of_birth) BETWEEN 1980 AND 1990,EXTRACT(YEAR FROM date_of_birth),NULL) AS year
+      FROM `atheletes.athletes`)
+PIVOT(COUNT(year) FOR year IN (1980,1981,1982,1983,1984,1985,1986,1987,1989,1990))
+ORDER BY nationality DESC
+
+(3)-	Tạo thống kê số lượng VDV theo các mức làm tròn của chiều cao gồm các mức: 200cm, 210cm, 220cm, 230cm. Với các yêu cầu: 
+•	Làm tròn chiều cao theo mét với 1 số lẻ và chuyển sang đơn vị Cm.
+•	Làm tròn cân nặng đến hàng chục.
+•	Chỉ xét các mức chiều cao: 200cm, 210cm, 220cm, 230cm. Kết quả truy vấn chỉ chứa những nước có ít nhất 1 VDV thuộc một trong những chiều cao này.
+•	Sắp xếp kết quả giảm dần theo quốc gia.
+
+SELECT * FROM (
+    SELECT nationality,
+        CASE 
+            WHEN ROUND(height, 1) * 100 = 200 THEN 'Height_200'
+            WHEN ROUND(height, 1) * 100 = 210 THEN 'Height_210'
+            WHEN ROUND(height, 1) * 100 = 220 THEN 'Height_220'
+            WHEN ROUND(height, 1) * 100 = 230 THEN 'Height_230'
+            ELSE NULL
+        END AS height_category
+    FROM `atheletes.athletes`
+WHERE ROUND(height, 1) * 100 BETWEEN 200 AND 230)
+PIVOT (COUNT(height_category) FOR height_category 
+    IN ('Height_200', 'Height_210', 'Height_220', 'Height_230'))
+ORDER BY nationality desc
+
+(4)-	VDV tham gia thi đấu môn đó theo minh họa sau. Với các yêu cầu: 
+•	Làm tròn chiều cao theo mét với 1 số lẻ và chuyển sang đơn vị Cm (HeightInCm).
+•	Làm tròn cân nặng đến hàng chục.
+•	Chỉ xét những môn có VDV tham gia có chiều cao từ 2 mét trở lên.
+•	Chỉ quan tâm các mức cân nặng từ 100 Kg – 140 Kg
+•	Kết quả truy vấn chỉ chứa những nước có ít nhất 1 VDV thuộc những chiều cao này và phải có số lượng VDV có cân nặng ở mức 120Kg >= 0.
+•	Sắp xếp kết quả tăng dần theo sport.
+
+SELECT * FROM (
+    SELECT sport,ROUND(height,1)*100 as HeightInCm,
+        CASE
+            WHEN ROUND(weight,-1)=100 THEN 'Weight_100'
+            WHEN ROUND(weight,-1)=110 THEN 'Weight_110'
+            WHEN ROUND(weight,-1)=120 THEN 'Weight_120'
+            WHEN ROUND(weight,-1)=130 THEN 'Weight_130'
+            WHEN ROUND(weight,-1)=140 THEN 'Weight_140'
+            ELSE NULL
+        END AS weight_category
+    FROM `atheletes.athletes`
+WHERE ROUND(height, 1) * 100 >=200 AND ROUND(weight,-1) BETWEEN 100 AND 140 )
+PIVOT (COUNT(weight_category) FOR weight_category 
+       IN ('Weight_100', 'Weight_110', 'Weight_120', 'Weight_130','Weight_140') )
+ORDER BY sport ASC
+
+(5)-	Tạo thống kê số lượng VDV của môn thi đấu (sport) là ‘cycling’ theo trọng lượng của VDV tham gia thi đấu môn đó theo minh họa sau. Với các yêu cầu: 
+•	Làm tròn chiều cao theo mét với 1 số lẻ và chuyển sang đơn vị Cm.
+•	Làm tròn cân nặng đến hàng chục.
+SELECT * FROM (
+    SELECT ROUND(height,1)*100 as HeightInCm,
+        CASE
+            WHEN ROUND(weight,-1)=60 THEN 'Weight_60'
+            WHEN ROUND(weight,-1)=70 THEN 'Weight_70'
+            WHEN ROUND(weight,-1)=80 THEN 'Weight_80'
+            WHEN ROUND(weight,-1)=90 THEN 'Weight_90'
+            WHEN ROUND(weight,-1)=100 THEN 'Weight_100'
+            ELSE NULL
+        END AS weight_category
+    FROM `atheletes.athletes`
+WHERE sport='cycling'AND ROUND(weight,-1) BETWEEN 60 AND 100)
+PIVOT (COUNT(weight_category) FOR weight_category 
+       IN ('Weight_60', 'Weight_70', 'Weight_80', 'Weight_90','Weight_100'))
+ORDER BY HeightInCm ASC
+
+SELECT * FROM (
+    SELECT sport, CAST(ROUND(height,1)*100 AS INT64) as HeightInCm, CAST(ROUND(weight, -1) AS INT64) as Weight
+    FROM `atheletes.athletes`
+    WHERE sport ='cycling')
+PIVOT (COUNT(Weight) Weight FOR Weight IN (60, 70, 80, 90,100))
+ORDER BY HeightInCm asc
+
+6.1.2.	UnPivot
+Yêu cầu: Tương ứng với mỗi câu trong phần Unpivot, HV cần thực hiện bằng 2 cách:
+-	Cách 1: sử dụng Unpivot từ table đã tạo trong phần Pivot
+-	Cách 2: không sử dụng Unpivot, viết lệnh truy vấn trực tiếp trên table athletes. Lúc này, thứ tự của các dòng (records) của kết quả thực hiện có thể khác với khi dùng Unpivot.
+(6)-	Từ table one của câu 1, viết lệnh truy vấn để có kết quả như minh họa sau:
+SELECT * 
+FROM `sql294-423705.atheletes.one` 
+UNPIVOT(quantity FOR sex IN(male,female))
+
+(7)-	Từ table two của câu 2, viết lệnh truy vấn để có kết quả như minh họa sau:
+SELECT * 
+FROM `sql294-423705.atheletes.two` 
+UNPIVOT(quantity FOR BirthYear IN(_1980,_1981,_1982,_1983,_1984,_1985,_1986,_1987,_1989,	
+_1990))
+
+(8)-	Từ table three của câu 3, viết lệnh truy vấn để có kết quả như minh họa sau:
+SELECT * 
+FROM `sql294-423705.atheletes.three` 
+UNPIVOT(Quantity FOR HeightInCm IN(Height_200,Height_210,Height_220,Height_230))
+
+SELECT *
+FROM `sql294-423705.atheletes.three` 
+UNPIVOT((LowerThan220,GreaterThanOrEqual220) FOR Height IN((Height_200 ,Height_210)AS '<220',(Height_220 ,Height_230) AS '>=220' ))
+
+(9)-	Từ table four của câu 4, viết lệnh truy vấn để có kết quả như minh họa sau:
+select * from `sql294-423705.atheletes.four` 
+unpivot (quantity for Weight in (Weight_100,Weight_110,Weight_120,Weight_130,Weight_140))
+where quantity<>0
+order by quantity desc
+
+(10)-	Từ table five của câu 5, viết lệnh truy vấn để có kết quả như minh họa sau:
+trong đó: 
+	Nếu là 2 cột weight_60 và weight_70 sẽ nhận chuỗi "Lest than Or Equal 80"
+	Các cột còn lại sẽ nhận chuỗi "Greater than 80"
+SELECT *
+FROM `sql294-423705.atheletes.five` 
+UNPIVOT((Below80,Over80) FOR Weight IN((Weight_60 ,Weight_70)AS 'LessThanOrEqual80',(Weight_80,Weight_90) AS 'GreaterThan80' ))
+
+7	BÀI TẬP SỐ 7
+(GROUP BY - RollUp)
+7.1.	Athletes
+1.	Tạo thống kê như minh họa sau:
+SELECT nationality, sex, SUM(GOLD) AS GoldMedal, SUM(SILVER) AS SilverMedal, SUM(BRONZE) AS BronzeMedal
+FROM `atheletes.athletes`
+GROUP BY ROLLUP (nationality, sex)
+ORDER BY nationality, sex
+
+2.	Thống kê tương tự như trên nhưng loại đi những dòng không có bất kỳ huy chương nào trong 3 loại gold, silver và bronze. Lưu ý, những nước mà phái nam và nữ đều không có huy chương sẽ bị loại bỏ trong kết quả (như 2 nước AFG và ALB). Kết quả như minh họa sau:
+SELECT nationality, sex, SUM(GOLD) AS GoldMedal, SUM(SILVER) AS SilverMedal, SUM(BRONZE) AS BronzeMedal
+FROM `atheletes.athletes`
+WHERE total >0
+GROUP BY ROLLUP (nationality, sex)
+ORDER BY nationality, sex
+
+3.	Thống kê số lượng từng loại huy chương theo giới tính và lứa tuổi. Kết quả như minh họa sau:
+SELECT sex,age,SUM(GOLD) AS GoldMedal, SUM(SILVER) AS SilverMedal, SUM(BRONZE) AS BronzeMedal
+FROM `atheletes.athletes`
+GROUP BY ROLLUP (sex,age)
+ORDER BY 1,2
+
+4.	Thống kê số lượng từng loại huy chương theo sex và sport cho những người có age=53. Kết quả như minh họa sau:
+SELECT sex,sport,SUM(GOLD) AS GoldMedal, SUM(SILVER) AS SilverMedal, SUM(BRONZE) AS BronzeMedal
+FROM `atheletes.athletes`
+WHERE age=53
+GROUP BY ROLLUP (1,2)
+ORDER BY 1,2
+
+7.2.	Data Science Salary
+5.	Thống kê thu nhập bình quân theo quốc gia nơi đặt văn phòng chính của công ty (Company Location), size của công ty, các chức danh và lương bình quân tính theo USD.
+SELECT name,SizeName,JobTitleName, AVG(SalaryInUsd) AS AVG_SalaryInUsd
+FROM `DS_SALARY.CountriesWithRegionalCodes` X
+JOIN `DS_SALARY.DS_Salary`Y ON X.`alpha-2`=Y.CompanyLocation
+JOIN `DS_SALARY.CompanySize` Z ON Y.CompanySize=Z.Size
+JOIN `DS_SALARY.JobTitles` W ON Y.JobTitle=W.JobTitle
+GROUP BY ROLLUP (1,2,3)
+ORDER BY 1 DESC,2,3
+
+8	BÀI TẬP SỐ 8
+(Optimized Queries)
+8.1.	Data Science Salary
+1.	Cho biết có phải năm 2022 là năm có lương cao nhất theo từng năm của những người được trả bằng đơn vị tiền tệ là ‘United Kingdom Pound’. Trả lời có hoặc không.   
+SELECT IF(COUNT(*)>0,'Yes','No')
+FROM(SELECT CurrencyCode,CountryAndCurrency
+    FROM `DS_SALARY.CurrencyCode`
+    WHERE CountryAndCurrency='United Kingdom Pound') AS X 
+    INNER JOIN
+    (SELECT `work_year`,SalaryCurrency,MAX(SALARY)
+    FROM `DS_SALARY.DS_Salary`
+    WHERE `work_year`=2022
+    GROUP BY `work_year`,SalaryCurrency) AS Y ON X.CurrencyCode=Y.SalaryCurrency
+
+with TB as(
+select distinct X.work_year, max(X.Salary) as MucLuong
+from `DS_SALARY.DS_Salary` X
+inner join (SELECT CurrencyCode
+            FROM`DS_SALARY.CurrencyCode`
+            WHERE CountryAndCurrency='United Kingdom Pound') Y ON X.SalaryCurrency=Y.CurrencyCode
+group by 1
+order by 2 desc
+limit 1
+)
+select case when TB.work_year =2022 then 'YES'
+else 'No'
+end as Ket_Qua
+from TB    
+    
+2.	Cho biết tên những tiểu vùng (sub-region) nào mà chức danh (JobTitleName) ‘Data Analyst’ có mức lương (SalaryInUsd) làm việc toàn thời gian (EmploymentTypeName = ‘Full-time’) nằm trong khoảng từ 80.000 đến 100.000.
+SELECT DISTINCT`sub-region` 
+FROM (SELECT JobTitle,JobTitleName
+      FROM `DS_SALARY.JobTitles`
+      WHERE JobTitleName='Data Analyst') AS X  
+      INNER JOIN
+      (SELECT SalaryInUsd,JobTitle,EmploymentType,CompanyLocation
+      FROM `DS_SALARY.DS_Salary`
+      WHERE SalaryInUsd BETWEEN 80000 AND 100000  ) AS Y ON X.JobTitle=Y.JobTitle
+      INNER JOIN
+      (SELECT EmploymentType,EmploymentTypeName
+      FROM `DS_SALARY.EmploymentType` 
+      WHERE EmploymentTypeName='Full-time') AS Z ON Y.EmploymentType=Z.EmploymentType
+      INNER JOIN
+      (SELECT `sub-region`,`alpha-2`
+      FROM `DS_SALARY.CountriesWithRegionalCodes`) AS W ON W.`alpha-2`=Y.CompanyLocation
+3.	Cho biết tên những chức danh nghề nghiệp (JobTitleName) nào có văn phòng chính ở Châu Âu (region= ‘Europe’) trả lương (SalaryInUsd) dưới 80.000 cho những người mà bản địa của họ (Employee Residence) không phải là nước Mỹ (‘United States of America’).
+SELECT DISTINCT JobTitleName
+FROM `DS_SALARY.JobTitles` X 
+INNER JOIN (SELECT JobTitle,EmployeeResidence,CompanyLocation
+            FROM `DS_SALARY.DS_Salary`
+            WHERE SalaryInUsd < 80000
+            ) AS Y ON X.JobTitle=Y.JobTitle
+INNER JOIN (SELECT `alpha-2`,name
+            FROM `DS_SALARY.CountriesWithRegionalCodes`
+            WHERE region='Europe' AND name <> 'United States of America') AS Z ON Y.CompanyLocation=Z.`alpha-2`
+
