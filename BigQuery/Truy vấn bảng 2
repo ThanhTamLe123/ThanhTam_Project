@@ -75,6 +75,7 @@ SELECT Region,`sub-region`
 FROM `DS_SALARY.CountriesWithRegionalCodes`
 WHERE Region IS NOT NULL AND `sub-region` IS NOT NULL 
 GROUP BY Region,`sub-region`
+
 --(3).-	Trả lời 'có' hoặc 'không'. Cho biết tên đơn vị tiền tệ (CountryAndCurrency) là ‘India Rupee’ có được các công ty có văn phòng tại đặt tại ‘India’ dùng để trả lương cho những nhân viên thuộc loại (EmpoymentTypeName) ‘Freelancer’.
 SELECT IF(COUNT(*)>0,'Co','Khong') AS TRALOI
 FROM `DS_SALARY.CurrencyCode`,`DS_SALARY.CountriesWithRegionalCodes`,`DS_SALARY.EmploymentType`
@@ -92,6 +93,7 @@ WHERE
     Y.CountryAndCurrency = 'India Rupee'
     AND Z.name = 'India'
     AND X.EmploymentType = 'FL'
+
 --(4).-	Cho biết những công ty trả lương (Salary Currency) bằng ‘Singapore Dollar’ thì văn phòng chính của Công ty được đặt ở nước nào (gợi ý: dựa trên CompanyLocation)?
 SELECT DISTINCT CompanyLocation
 FROM `DS_SALARY.CurrencyCode` X,`DS_SALARY.DS_Salary`Y
@@ -105,6 +107,7 @@ JOIN
     `DS_SALARY.CurrencyCode` Y ON X.SalaryCurrency = Y.CurrencyCode
 WHERE
     Y.CountryAndCurrency = 'Singapore Dollar'
+
 --(5).-	Mức lương thấp nhất của các công ty có văn phòng đặt tại Châu Á (Asia) là bao nhiêu?
 SELECT  MIN(Salary) AS TRALOI
 FROM `DS_SALARY.DS_Salary` A, `DS_SALARY.CountriesWithRegionalCodes` B
@@ -115,6 +118,7 @@ from `DS_SALARY.DS_Salary` X
 inner join `DS_SALARY.CountriesWithRegionalCodes` Y
 on X.CompanyLocation = Y.`alpha-2`
 where region = 'Asia'
+
 --(6).-	Trong năm 2022, cho biết mức lương cao nhất, mức lương thấp nhất, chênh lệch giữa 2 mức trên của những người có tỷ lệ làm việc online (RemoteRatio) là 100%. Các mức lương được tính dựa trên USD (SalaryInUsd). Minh họa kết quả cần thực hiện:
 SELECT MAX(SalaryInUsd) AS MAX_SALARY, MIN(SalaryInUsd) AS MIN_SALARY,MAX(SalaryInUsd) - MIN(SalaryInUsd) AS CHENH_LECH
 FROM `DS_SALARY.DS_Salary`
@@ -123,9 +127,11 @@ WHERE RemoteRatio=100 AND work_year=2022
 select max(X.SalaryInUsd), min(X.SalaryInUsd), max(X.SalaryInUsd) - min(X.SalaryInUsd)
 from `DS_SALARY.DS_Salary` X
 where X.RemoteRatio =100 and work_year=2022
+
 --(7).-	Có bao nhiêu nhân viên mà nơi thường trú của họ (EmployeeResidence) và nơi văn phòng công ty (CompanyLocation) ở 2  nước khác nhau.
 SELECT COUNTIF(EmployeeResidence<>CompanyLocation) AS SO_NV
 FROM `DS_SALARY.DS_Salary`
+
 --(8).-	Biết rằng có 3 mức làm việc online là 0%, 50%, 100%. Thống kê tỷ lệ phần trăm các mức làm việc online trên tổng số record có trong table DS_Salaries.
 SELECT ROUND( COUNTIF (RemoteRatio = 100) / COUNT (*) * 100, 2) AS FullOnline,
         ROUND( COUNTIF (RemoteRatio = 50) / COUNT (*) * 100, 2) AS HalfOnline,
@@ -142,31 +148,29 @@ WHERE Y.JobTitleName = 'Data Scientist' AND Z.name = 'Canada'
 --(10).- Tính thu nhập bình quân theo năm của những nhân viên có chức danh (JobTitleName) là ‘Business Intelligence Engineer’.
 SELECT work_year, AVG (SalaryInUSD) as thu_nhap_binh_quan
 FROM `DataScienceSalaries.DS_Salary` X
-JOIN `DataScienceSalaries.JobTitles` Y ON X.JobTitle = Y.JobTitle
+INNER JOIN `DataScienceSalaries.JobTitles` Y ON X.JobTitle = Y.JobTitle
 WHERE Y.JobTitleName = 'Business Intelligence Engineer'
 GROUP BY work_year
-
---(11).-	Cho biết đơn tị tiền tệ (CountryAndCurrency) là ‘India Rupee’ có được các công ty dùng để trả lương cho những nhân viên thường trú (EmployeeResidence) ngoài nước Ấn độ hay không? Trả lời ‘có’ hoặc ‘không’ bằng 2 cách: dùng lệnh CASE hoặc hàm IF
 
 --(11).- Cho biết đơn tị tiền tệ (CountryAndCurrency) là ‘India Rupee’ có được các công ty dùng để trả lương cho những nhân viên thường trú (EmployeeResidence) ngoài nước Ấn độ hay không? Trả lời ‘có’ hoặc ‘không’ bằng 2 cách: dùng lệnh CASE hoặc hàm IF
 --CASE
 SELECT CASE WHEN COUNT(*) > 0 THEN 'Yes' ELSE 'No' END AS Answer
 FROM `DataScienceSalaries.DS_Salary` X
-      JOIN `DataScienceSalaries.CurrencyCode` Y ON X.SalaryCurrency = Y.CurrencyCode
-      JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Z ON X.EmployeeResidence = Z.`alpha-2`
+      INNER JOIN `DataScienceSalaries.CurrencyCode` Y ON X.SalaryCurrency = Y.CurrencyCode
+      INNER JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Z ON X.EmployeeResidence = Z.`alpha-2`
 WHERE Y.CountryAndCurrency = 'India Rupee'AND Z.name <> 'India'
 
 --IF
 SELECT IF(COUNT(*) > 0, 'Yes', 'No') AS Answer
 FROM `DataScienceSalaries.DS_Salary` X
-      JOIN `DataScienceSalaries.CurrencyCode` Y ON X.SalaryCurrency = Y.CurrencyCode
-      JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Z ON X.EmployeeResidence = Z.`alpha-2`
+      INNER JOIN `DataScienceSalaries.CurrencyCode` Y ON X.SalaryCurrency = Y.CurrencyCode
+      INNER JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Z ON X.EmployeeResidence = Z.`alpha-2`
 WHERE Y.CountryAndCurrency = 'India Rupee'AND Z.name <> 'India'
 
 --(12).- Cho biết tên quốc gia của những nhân viên table	DS_Salaries	có	quốc	gia	cư (EmployeeResidence) trùng với quốc gia n văn phòng chính của Công ty mà họ đang là (CompanyLocation).
 SELECT DISTINCT Y.name
 FROM `DataScienceSalaries.DS_Salary` X
-        JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Y ON X.EmployeeResidence = Y.`alpha-2`
+        INNER JOIN `DataScienceSalaries.CountriesWithRegionalCodes` Y ON X.EmployeeResidence = Y.`alpha-2`
 WHERE EmployeeResidence = CompanyLocation
 GROUP BY Y.name
 
@@ -179,11 +183,9 @@ FROM `DataScienceSalaries.DS_Salary`
 --(14).- Cho biết lương bình quân tính theo USD của JobTitleName là ‘AI Developer’.
 SELECT ROUND(AVG (SalaryInUSD),0) as thu_nhap_binh_quan
 FROM `DataScienceSalaries.DS_Salary` X
-        JOIN `DataScienceSalaries.JobTitles` Y ON X.JobTitle = Y.JobTitle
+        INNER JOIN `DataScienceSalaries.JobTitles` Y ON X.JobTitle = Y.JobTitle
 WHERE Y.JobTitleName = 'AI Developer'
 
-(15).-	Cho biết trong năm 2021, những công ty có CompanySizeName là ‘large’ đã không trả lương cho những JobTitleName nào?
---(15).- Cho biết trong năm 2021, những công ty có CompanySizeName là ‘large’ đã không trả lương cho những JobTitleName nào?
 --(15).- Cho biết trong năm 2021, những công ty có CompanySizeName là ‘large’ đã không trả lương cho những JobTitleName nào?
 --NOT IN
 select X.JobTitleName
@@ -212,10 +214,11 @@ WHERE JobTitle IN (select JobTitle
                 select JobTitle
                 from `DS_Salary.DS_Salary` Y INNER JOIN `DS_Salary.CompanySize` Z ON Y.CompanySize=Z.Size
                                         where Y.work_year = 2021 and Z.SizeName='Large')
+
 --(16).-	Thống kê cho biết lương cao nhất theo từng năm của những người được trả bằng đơn vị tiền tệ là ‘United Kingdom Pound’.
 SELECT work_year,MAX(Salary) AS LuongCaoNhat
 FROM `DS_SALARY.DS_Salary`X
-        JOIN `DS_SALARY.CurrencyCode` Y ON X.SalaryCurrency=Y.CurrencyCode
+        INNER JOIN `DS_SALARY.CurrencyCode` Y ON X.SalaryCurrency=Y.CurrencyCode
 WHERE CountryAndCurrency='United Kingdom Pound'
 GROUP BY work_year
 
@@ -226,6 +229,7 @@ FROM `DS_SALARY.CountriesWithRegionalCodes` X
     INNER JOIN `DS_SALARY.CompanySize` Z ON Y.CompanySize=Z.Size
 GROUP BY region
 ORDER BY 1
+
 --(18).-	Tương tự câu trên, nhưng dựa trên quốc gia nơi cư trú của nhân viên (EmployeeResidence), hãy thực hiện thống kê dữ liệu trong table DS_Salaries theo vùng (field region trong table CountriesWithRegionalCodes) gồm lương bình quân theo dollar (SalaryInUsd), số lượng nhân viên thuộc vùng đó, Số lượng nhân viên có mức lương (SalaryInUsd) trên 100.000, số lượng công ty có CompanySize là ‘Small’.
 SELECT DISTINCT region, ROUND(AVG(SalaryInUsd),1) AS Avg_Salary, COUNT(*) AS SLNV, COUNTIF(SalaryInUsd >100000) AS SLNV_Tren100K , COUNTIF(SizeName='Small') AS SL_SmallCompany
 FROM `DS_SALARY.CountriesWithRegionalCodes` X
@@ -233,46 +237,47 @@ FROM `DS_SALARY.CountriesWithRegionalCodes` X
     INNER JOIN `DS_SALARY.CompanySize` Z ON Y.CompanySize=Z.Size
 GROUP BY region
 ORDER BY 1
+
 --(19).-	Cho biết tên chức danh (JobTitleName) có mức lương cao nhất theo từng năm.
 SELECT DISTINCT work_year,MAX_BY(Y.JobTitleName,X.SalaryInUsd) AS JobTitleName, MAX(SalaryInUsd) AS SalaryInUsd
 FROM `DS_SALARY.DS_Salary` X 
-        JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
+        INNER JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
 GROUP BY 1
 ORDER BY 1
 
 --(20).-	Cho biết có phải chức danh ‘Computer Vision Engineer’ là chức danh có mức lương tính theo USD (SalaryInUSD) là cao nhất hay không? Chỉ trả lời có hoặc không.
 SELECT IF(COUNT(*)>0,'Có','Không') AS TRALOI
 FROM `DS_SALARY.JobTitles` X
-    JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
+    INNER JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
 WHERE JobTitleName='Computer Vision Engineer' AND SalaryInUsd =(SELECT MAX(SalaryInUsd)
                                                                 FROM`DS_SALARY.DS_Salary`)
 
 --(21).-	Cho biết lương bình quân tính theo USD (SalatyInUsd) của chức danh nghề nghiệp (JobTitleName) là ‘Data Manager’ tại Châu Phi (Africa) là bao nhiêu?
 SELECT JobTitleName, AVG(SalaryInUsd) AS LuongTB
 FROM `DS_SALARY.JobTitles` X
-        JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
-        JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
+        INNER JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
+        INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
 WHERE JobTitleName='Data Manager' AND region ='Africa'
 GROUP BY JobTitleName
-
 
 --(22).-	Lần lượt sử dụng các hàm sau đây cho biết tên nước trả lượng (SalaryInUsd) “cao nhất” hoặc “thấp nhất”:
 •	ANY_VALUE
 •	MAX_BY/MIN_BY
 •	Không sử dụng các hàm ANY_VALUE và MAX_BY/MIN_BY.
 Kết quả truy vấn:
+
 -- ANY_VALUE
 SELECT ANY_VALUE(name HAVING MAX SalaryInUsd) AS Max_Salary,ANY_VALUE(name HAVING MIN SalaryInUsd ) AS MIN_Salary
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
 -- MAX_BY/MIN_BY
 SELECT MAX_BY(name,SalaryInUsd) AS Max_Salary, MIN_BY(name,SalaryInUsd) AS Min_Salary
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
 --Không sử dụng các hàm ANY_VALUE và MAX_BY/MIN_BY
 SELECT MAX(SalaryInUsd) AS Max_Salary,MIN(SalaryInUsd) AS Min_Salary
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
 
 SELECT T2.REGION AS COUNTRY, MAX(SALARYINUSD) AS MAX_SALARYINUSD, MIN(SALARYINUSD) AS MIN_SALARYINUSD
 FROM `DS_SALARY.DS_Salary` T1
@@ -282,15 +287,16 @@ ORDER BY 2 DESC, 3 ASC
 --(23).-	Cho biết mức lương cao nhất (tính theo SalaryInUSD) của từng chức danh (JobTitleName) của những công ty có văn phòng chính đóng tại ‘United Kingdom of Great Britain and Northern Ireland”. Sắp xếp giảm dần theo MaxSalary. Minh họa kết quả cần thực hiện.
 SELECT JobTitleName, MAX(SalaryInUSD) AS MaxSalary
 FROM `DS_SALARY.JobTitles` X
-    JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
+    INNER JOIN `DS_SALARY.DS_Salary` Y ON X.JobTitle=Y.JobTitle
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
 WHERE name='United Kingdom of Great Britain and Northern Ireland'
 GROUP BY 1
+
 --(24).-	Tạo thống kê sau:
 SELECT region, COUNTIF(Size='L') AS LargeSize,COUNTIF(Size='M') AS MediumSize,COUNTIF(Size='S') AS SmallSize
 FROM `DS_SALARY.CountriesWithRegionalCodes` X
-    JOIN `DS_SALARY.DS_Salary` Y ON X.`alpha-2`=Y.CompanyLocation
-    JOIN `DS_SALARY.CompanySize` Z ON Y.CompanySize=Z.Size
+    INNER JOIN `DS_SALARY.DS_Salary` Y ON X.`alpha-2`=Y.CompanyLocation
+    INNER JOIN `DS_SALARY.CompanySize` Z ON Y.CompanySize=Z.Size
 GROUP BY 1
 
 --(25).-	Giả sử có quy ước về SalaryInUsd như sau: 
@@ -300,27 +306,29 @@ GROUP BY 1
 Thống kê số lượng người thuộc mức lương tương ứng của từng loại và sắp xếp theo tên nước tăng dần như minh họa sau:
 SELECT name, COUNTIF(SalaryInUsd>200000) AS HighSalary, COUNTIF(SalaryInUsd BETWEEN 150000 AND 200000) AS MiddleSalary,COUNTIF(SalaryInUsd<200000) AS LowSalary
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
 GROUP BY 1 
 ORDER BY 1
+
 --(26).-	Tạo thống kê sau cho biết tên nước có số lượng người đạt mức cao nhất của từng loại mức lương:
 SELECT name, IF(SalaryInUsd=MAX(SalaryInUsd),COUNT(*),0) AS HighSalary, COUNTIF(SalaryInUsd = 200000) AS MiddleSalary,COUNTIF(SalaryInUsd<200000) AS LowSalary
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Y ON X.CompanyLocation=Y.`alpha-2`
 GROUP BY 1 
 ORDER BY 1
+
 --(27).-	Cho biết tên các Châu lục (Region) và số lượng các tiểu vùng của châu lục (sub-region) được ghi nhận trong table CountriesWithRegionalCodes.
 SELECT region,IF(region IS NULL,1,COUNT(DISTINCT `sub-region`))AS NumberOfSub_Region
 FROM `DS_SALARY.CountriesWithRegionalCodes`
 GROUP BY 1
+
 --(28).-	Cho biết lương bình quân của từng loại EmploymentType được trả tại Canada là bao nhiêu? Yêu cầu: hiện đầy đủ EmploymentTypeName của tất cả các EmploymentType.  
 SELECT EmploymentTypeName, AVG(SalaryInUsd) AS LuongTB
 FROM `DS_SALARY.EmploymentType` X
-JOIN `DS_SALARY.DS_Salary` Y ON X.EmploymentType=Y.EmploymentType
-JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
+INNER JOIN `DS_SALARY.DS_Salary` Y ON X.EmploymentType=Y.EmploymentType
+INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON Y.CompanyLocation=Z.`alpha-2`
 WHERE name='Canada'
 GROUP BY 1
-
 
 --(29).-	Cho biết tên chức danh (JobTitleName) có mức lương cao nhất của những công ty có văn phòng chính đóng tại ‘United Kingdom of Great Britain and Northern Ireland”. Minh họa kết quả cần thực hiện, yêu cầu thực hiện bằng 2 cách:
 a.-	Sử dụng mệnh đề LIMIT
@@ -328,8 +336,8 @@ b.-	Không sử dụng mệnh đề LIMIT
 --a
 SELECT JobTitleName, MAX(SalaryInUsd) AS LuongCaoNhat
 FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON X.CompanyLocation=Z.`alpha-2`
+    INNER JOIN `DS_SALARY.JobTitles` Y ON X.JobTitle=Y.JobTitle
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON X.CompanyLocation=Z.`alpha-2`
 WHERE CompanyLocation='United Kingdom of Great Britain and Northern Ireland'
 GROUP BY 1
 ORDER BY 2
@@ -337,18 +345,19 @@ LIMIT 1
 --b
 SELECT JobTitleName, A.LuongCaoNhat
 FROM `DS_SALARY.DS_JobTitles` Y
-JOIN(
+INNER JOIN(
    SELECT JobTitleName, MAX(SalaryInUsd) AS LuongCaoNhat
     FROM `DS_SALARY.DS_Salary` X
-    JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON X.CompanyLocation=Z.`alpha-2`
+    INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` Z ON X.CompanyLocation=Z.`alpha-2`
 WHERE CompanyLocation='United Kingdom of Great Britain and Northern Ireland') AS A ON Y.JobTitle=A.JobTitle
 ORDER BY 2
+
 --(30).-	Thống kê cho các quốc gia thuộc khu vực Châu Á (region=’Asia’) với thông tin gồm: SalaryLevel (làm tròn đến giá trị ngàn USD), chức danh nghề nghiệp (JobTitleName), hình thức làm việc (EmploymentTypeName), và số lượng người trong từng nhóm. Sắp xếp kết quả tăng dần lần lượt theo 3 cột đầu của kết quả.
 SELECT ROUND(SalaryInUSD, -3) AS SalaryLevel, Z.JobTitleName, Y.EmploymentTypeName, COUNT(*) AS NumberOfEmployees
 FROM `DS_SALARY.DS_Salary` X
-JOIN `DS_SALARY.EmploymentType` Y ON X.EmploymentType = Y.EmploymentType 
-JOIN `DS_SALARY.JobTitles` Z ON X.JobTitle = Z.JobTitle
-JOIN `DS_SALARY.CountriesWithRegionalCodes` A ON X.CompanyLocation = A.`alpha-2`
+INNER JOIN `DS_SALARY.EmploymentType` Y ON X.EmploymentType = Y.EmploymentType 
+INNER JOIN `DS_SALARY.JobTitles` Z ON X.JobTitle = Z.JobTitle
+INNER JOIN `DS_SALARY.CountriesWithRegionalCodes` A ON X.CompanyLocation = A.`alpha-2`
 WHERE A.region ='Asia'
 GROUP BY SalaryLevel, Z.JobTitleName, Y.EmploymentTypeName
 ORDER BY SalaryLevel, Z.JobTitleName, Y.EmploymentTypeName
