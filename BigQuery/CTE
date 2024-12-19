@@ -1,5 +1,4 @@
 4.2.	Athletes
-Yêu cầu: Các câu trong phần này, nếu được, ngoài cách sử dụng CTE, học viên có thể viết thêm cách khác mà không sử dụng CTE. 
 11.	Gọi X là danh sách các nước có VDV đạt huy chương bạc đã được sắp xếp tăng hoặc giảm dần) theo số lượng VDV đạt huy chương bạc. Liệt kê các nước có huy chương bạc nhưng không nằm trong 10 nước có số lượng VDV đạt huy chương bạc nhiều nhất và cũng không nằm trong 10 nước có  số lượng VDV đạt huy chương bạc ít nhất.
 WITH CTE1
 AS
