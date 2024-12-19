@@ -1,0 +1,182 @@
+5.1.1.	Numbering functions
+(1)-	Xếp hạng (ranking) các môn thi (sport) theo số lượng VDV tham gia với yêu cầu: 
+•	Các môn thi đấu có cùng số lượng VDV tham gia sẽ có cùng hạng.
+•	Khi có các đội có cùng hạng thì đội ngay sau đó không được lấy hạng liền kề (trong kết quả sau 2 môn table tennis và badminton có cùng hạng 22 nên môn taekwondo phải nhận hạng 24. Tương tự, 2 môn taekwondo và archery có cùng hạng 24 nên môn golf phải lấy hạng 26).
+SELECT sport,COUNT(*) AS SL_VDV, RANK() OVER (ORDER BY COUNT(*) DESC) AS rank
+FROM `atheletes.athletes`
+GROUP BY sport
+ORDER BY rank
+
+(2)-	Xếp hạng (ranking) các quốc gia dựa trên tổng số huy chương vàng, bạc đồng mà các VDV của quốc gia đó đã đạt được. Lưu ý việc xếp hạng dựa trên: 3 tiếu chí lần lượt là tổng số huy chương vàng, tổng số huy chương bạc, tổng số huy chương đồng sao cho nếu số huy chương của cả 3 loại bằng nhau thì thứ hạng phải bằng nhau (như trong minh họa 2 nước VIE và BRN)
+SELECT nationality,SUM(GOLD) AS Gold, SUM(silver) AS Silver, SUM(bronze) AS Bronze,RANK() OVER (ORDER BY SUM(GOLD) DESC,SUM(silver) DESC, SUM(bronze) DESC) AS rank
+FROM `atheletes.athletes`
+GROUP BY nationality
+ORDER BY rank
+
+(3)-	Xếp hạng các VDV dựa trên môn thi đấu (sport) và tổng số huy chương vàng, bạc đồng mà các VDV đã đạt được. Lưu ý việc xếp hạng: 
+-	Dựa trên 3 tiêu chí lần lượt là tổng số huy chương vàng, tổng số huy chương bạc, tổng số huy chương đồng sao cho nếu số huy chương của cả 3 loại bằng nhau thì thứ hạng phải bằng nhau.
+-	Nếu có những VDV đồng hạng thì thứ hạng của VDV sau đó sẽ là: thứ hạng của VDV liền trước + số lượng VDV có cùng hạng đó +1. 
+-	Thứ hạng của mỗi môn thi đấu sẽ bắt đầu tính từ 1 trở đi.
+
+SELECT sport,name,SUM(GOLD) AS Gold, SUM(silver) AS Silver, SUM(bronze) AS Bronze,RANK() OVER (ORDER BY SUM(GOLD) DESC,SUM(silver) DESC, SUM(bronze) DESC) AS rank
+FROM `atheletes.athletes`
+GROUP BY sport,name
+ORDER BY rank
+
+/*(4)- Xếp hạng các VDV theo mỗi nước dựa trên tổng số huy chương vàng, bạc đồng mà các VDV đã đạt được. Lưu ý việc xếp hạng: 
+- Nếu số huy chương vàng của 2 VDV bằng nhau thì xét tiếp trên số số huy chương bạc; nếu cả huy chương vàng và bạc cùng bằng nhau thì xét tiếp trên số huy chương đồng. 
+- Nếu những VDV có cùng số lượng huy chương mỗi loại như nhau thì phải được xếp đồng hạng. 
+- Thứ hạng của mỗi môn thi đấu sẽ bắt đầu tính từ 1 trở đi. 
+- Chỉ hiện danh sách các VDV có thứ hạng từ 1 đến 3. 
+- Nếu 1 nước có nhiều VDV có cùng hạng 1( hoặc 2 hay 3) sẽ dẫn đến số lương VDV của nước đó vượt quá 3 người. Học viên cần loại bỏ những người thừa này. 
+- Minh họa kết quả mà học viên có thể gặp (chưa đúng với yêu cầu do số lượng VDV của 1 nước có thể vượt quá 3 người như 2 nước UZB cà TUR trong hình minh họa sau):*/
+with TB as
+(
+select nationality, rank () over (partition by nationality order by sum(gold) desc, sum(silver) desc,sum(bronze) desc ) as ranking,
+row_number () over (partition by nationality order by sum(gold) desc, sum(silver) desc,sum(bronze) desc ) as row_num,name,sport, sum(gold) as Gold, sum(silver) as Silver, sum(bronze) as Bronze  
+from `atheletes.athletes`
+where total>0
+group by 1,4,5
+order by 1 desc
+)
+select nationality,ranking, name, sport, Gold, Silver, Bronze from TB
+where ranking<=3 and row_num<=3
+
+/*5.1.2. Navigation functions
+(5)- Thống kê danh sách theo mẫu, với các yêu cầu: 
+- Kết quả chỉ bao gồm tên những VDV có huy chương.
+- Danh sách được tổ chức theo từng quốc gia, trong mỗi quốc gia sẽ dựa trên 3 tiêu chí lần lượt là tổng số huy chương vàng, tổng số huy chương bạc, tổng số huy chương đồng.
+- Cột cuối cùng sẽ lấy tên VDV có thành tích cao nhất của nước đó.
+ Yêu cầu: lần lượt thực hiện 3 cách khác nhau, mỗi cách sử dụng 1 trong 3 hàm sau: FIRST_VALUE, LAST_VALUE, nTh_VALUE*/
+--FIRST_VALUE
+SELECT nationality, name, sum(gold) as gold, sum(silver) as silver, sum(bronze) as bronze,
+      FIRST_VALUE(name) OVER (PARTITION BY nationality
+                   ORDER BY sum(gold) desc,sum(silver) desc,sum(bronze) desc) as rank
+FROM `atheletes.athletes`
+WHERE total >0
+Group by nationality,name
+ORDER BY 1 DESC
+--LAST_VALUE
+SELECT nationality, name, sum(gold) as gold, sum(silver) as silver, sum(bronze) as bronze,
+      LAST_VALUE(name) OVER (PARTITION BY nationality
+                   ORDER BY sum(gold) ASC,sum(silver) ASC,sum(bronze)ASC
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as rank
+FROM `atheletes.athletes`
+WHERE total >0
+Group by nationality,name
+ORDER BY 1 DESC
+--NTH_VALUE
+SELECT nationality, name, sum(gold) as gold, sum(silver) as silver, sum(bronze) as bronze,
+      NTH_VALUE(name,1) OVER (PARTITION BY nationality
+                   ORDER BY sum(gold) desc,sum(silver) desc,sum(bronze) desc) as rank
+FROM `atheletes.athletes`
+WHERE total >0
+Group by nationality,name
+ORDER BY 1 DESC
+
+(6)-	Viết truy vấn để có kết quả như minh họa sau bằng 2 cách: có và không có sử dụng window function, trong đó:
+-	athletes_GoldMedal	: số lượng VDV đạt huy chương vàng của nước đó.
+-	athletes_SilverMedal	: số lượng VDV đạt huy chương bạc của nước đó.
+-	athletes_BronzeMedal	: số lượng VDV đạt huy chương đồng của nước đó.
+Nhận xét: khi 1 VDV vừa đạt huy chương vàng, vừa đạt huy chương bạc thì VDV này sẽ được đếm 2 lần: 1 lần đếm cho huy chương vàng và 1 lần đếm cho huy hương bạc. Tương tự đối với những trường hợp khác.
+--KHONG WINDOW FUNCTION
+SELECT nationality, COUNTIF(gold>0) AS athletes_goldmedal, COUNTIF(silver>0) AS athletes_silvermedal,COUNTIF(bronze>0) AS athletes_bronzemedal
+FROM `atheletes.athletes`
+GROUP BY 1
+ORDER BY 2 DESC,3 DESC,4 DESC
+--WINDOW FUNCTION
+SELECT DISTINCT nationality, COUNTIF(gold>0) OVER(PARTITION BY nationality) AS athletes_goldmedal, 
+                             COUNTIF(silver>0) OVER(PARTITION BY nationality) AS athletes_silvermedal,
+                             COUNTIF(bronze>0) OVER(PARTITION BY nationality) AS athletes_bronzemedal
+FROM `atheletes.athletes`
+ORDER BY 2 DESC,3 DESC,4 DESC
+
+/*(7)- Viết truy vấn để có kết quả như minh họa sau
+ Giải thích: 
+- FemaleGold : số lượng VDV nữ đạt huy chương vàng của từng môn thi đấu.
+- Female : tổng số lượng VDV nữ tham gia thi đấu đó.
+- FemaleRatio : Tỷ lệ VDV nữ đạt huy chương vàng trên tổng số VDV nữ tham gia môn thi đấu đó (= FemaleGold / Female)
+ Yêu cầu:
+- Lần lượt thực hiện bằng bằng 2 cách: có và không có sử dụng window function.
+- Cần thể hiện dấu phần trăm (%) cho cột FemaleRatio.*/
+--KHONG WINDOW FUNCTION
+SELECT sport, COUNTIF(gold>0 AND sex='female') AS FemaleGold, COUNTIF(sex='female') AS Female, CONCAT(ROUND(COUNTIF(gold>0 AND sex='female')/COUNTIF(sex='female')*100,2),'%') AS FemaleRatio
+FROM `atheletes.athletes`
+GROUP BY 1
+ORDER BY 4 DESC
+--WINDOW FUNCTION
+SELECT DISTINCT sport, COUNTIF(gold>0 AND sex='female') OVER (PARTITION BY sport) AS FemaleGold, 
+                       COUNTIF(sex='female') OVER (PARTITION BY sport) AS Female, 
+                       CONCAT(ROUND(COUNTIF(gold>0 AND sex='female')OVER (PARTITION BY sport)/COUNTIF(sex='female')OVER (PARTITION BY sport)*100,2),'%')AS FemaleRatio
+FROM `atheletes.athletes`
+ORDER BY 4 DESC
+
+(8)-	Viết truy vấn để có kết quả như minh họa sau
+	Giải thích: 
+-	FemaleGold	: số lượng VDV nữ đạt huy chương vàng của nước đó.
+-	Female	: tổng số lượng VDV nữ của nước đó.
+-	FemaleRatio	: Tỷ lệ VDV nữ đạt huy chương vàng trên tổng số VDV nữ 
+của nước đó (= FemaleGold / Female).
+-	MaleGold	: số lượng VDV nam đạt huy chương vàng của nước đó.
+-	Male	: tổng số lượng VDV nam của nước đó.
+-	MaleRatio	: Tỷ lệ VDV nam đạt huy chương vàng trên tổng số VDV nam của nước đó (= MaleGold / Male)
+	Yêu cầu:
+-	Lần lượt thực hiện bằng bằng 2 cách: có và không có sử dụng window function.
+-	Cần thể hiện dấu phần trăm (%) cho 2 cột FemaleRatio và MaleRatio.
+-	Danh sách được sắp xếp giảm dần theo giá trị số của cột FemaleRatio. Nếu bằng nhau sẽ sắp xếp dựa trên giá trị số của cột MaleRatio.
+
+--KHONG WINDOW FUNCTION
+SELECT nationality, COUNTIF(gold>0 AND sex='female') AS FemaleGold, COUNTIF(sex='female') AS Female, 
+       CONCAT(CAST(COUNTIF(gold>0 AND sex='female')*100/IF(COUNTIF(sex='female')>0,COUNTIF(sex='female'),NULL) AS STRING FORMAT '999.99'),'%') AS FemaleRatio,
+       COUNTIF(gold>0 AND sex='male') AS MaleGold, COUNTIF(sex='male') AS Female, 
+       CONCAT(CAST(COUNTIF(gold>0 AND sex='male')*100/IF(COUNTIF(sex='female')>0,COUNTIF(sex='female'),NULL) AS STRING FORMAT '999.99'),'%') AS MaleRatio
+FROM `atheletes.athletes`
+GROUP BY 1
+ORDER BY 4 DESC,5 DESC
+
+--WINDOW FUNCTION
+select distinct nationality,
+      countif(sex='female' and gold >0) over (partition by nationality ) as FemaleGold, 
+      countif(sex='female') over (partition by nationality ) as Female,
+      concat(cast(countif(sex='female' and gold >0) over (partition by nationality )*100/if((countif(sex='female') over (partition by nationality ))>0,countif(sex='female') over (partition by nationality),NULL) AS string format '999.99'), '%') as FemaleRatio,
+      countif(sex='male' and gold >0) over (partition by nationality ) as MaleGold, 
+      countif(sex='male') over (partition by nationality ) as Male,
+      concat(cast(countif(sex='male' and gold >0) over (partition by nationality )*100/if((countif(sex='male') over (partition by nationality ))>0,countif(sex='male') over (partition by nationality),NULL) AS string format '999.99'), '%') as MaleRatio
+ from `atheletes.athletes`
+order by 4 desc,7 desc
+(9)-	Viết truy vấn để có kết quả như minh họa sau
+	Giải thích: 
+-	AthletesGoldMedal	: số lượng VDV đạt huy chương vàng của nước đó. Kết quả truy vấn sẽ được sắp xếp giảm dần trên cột này.
+-	AVG_3nationality	: là giá trị trung bình của tổng số huy chương vàng của nước đang xét và 1 nước ngay trước cùng 1 nước ngay sau nước đó.
+
+with TB as 
+(
+select distinct nationality,countif(gold>0) as athletes_GoldMedal ,
+from `atheletes.athletes`
+group by 1
+order by 2 desc
+)
+select distinct nationality, athletes_GoldMedal,
+round(avg(athletes_GoldMedal) over (order by athletes_GoldMedal desc rows between 1 preceding and 1 following),2) as Avg_3_nationality 
+from TB
+order by 2 desc
+
+(10)-	Viết truy vấn để có kết quả như minh họa sau:
+	Giải thích: 
+-	GoldMedal	: số lượng huy chương vàng mà nước đó đạt được trong môn (sport) tương ứng.
+-	nationality_max_gold	: là thông tin về nước có số lượng huy chương vàng cao nhất của môn đó, gồm tên nước và số lượng huy chương vàng mà nước đó đạt được.
+
+with TB as    
+(
+select distinct sport, nationality,sum(gold) as GoldMedal
+from `atheletes.athletes`
+group by 1,2 
+order by 3 desc
+)
+select distinct sport, nationality, GoldMedal,
+concat(first_value(nationality) over (partition by sport order by GoldMedal desc
+      rows between unbounded preceding and unbounded following),' ','-',' ',
+  first_value(GoldMedal) over (partition by sport order by GoldMedal desc
+      rows between unbounded preceding and unbounded following),' ','Gold Medal') as nationality_max_gold
+from TB
+order by 1 asc, 3 desc
