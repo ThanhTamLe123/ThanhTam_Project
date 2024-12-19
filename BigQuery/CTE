@@ -82,7 +82,6 @@ WHERE R IS NOT NULL
 ORDER BY 2
 LIMIT 1
 16.	Thống kê số lượng VDV nam, nữ theo từng môn thi đấu (sport), sau đó chọn ra 5 môn có số lượng nữ và 5 môn có số lượng nam tham gia là nhiều nhất.
-Minh họa kết quả cần thực hiện
 WITH CTE1
 AS     
 (
