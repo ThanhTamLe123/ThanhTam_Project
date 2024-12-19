@@ -94,32 +94,38 @@ WHERE name LIKE 'S%' AND name NOT LIKE '____m%' AND name NOT LIKE '____n%'
 SELECT name
 FROM `atheletes.athletes`
 WHERE sex = 'female' AND weight < 60 AND gold > 0  AND height BETWEEN 1.6 AND 1.8 
+
 --19.	Cho biết tên những VDV đạt huy chương vàng khi tuổi không nằm trong khoảng từ 18 đến 53.
 SELECT name
 FROM `atheletes.athletes`
 WHERE gold > 0 AND age NOT BETWEEN 18 AND 53 
+
 --2.2.6.	LIMIT
 --20.	Truy vấn 1000 hàng đầu trong dữ liệu.
 SELECT *
 FROM `atheletes.athletes`
 LIMIT 1000
+
 --21.	Cho biết 10 VDV có nhiều huy chương nhất (tìm dựa trên field total)
 SELECT *
 FROM `atheletes.athletes`
 ORDER BY total DESC
 LIMIT 10
+
 --22.	Cho biết 10 VDV nữ có nhiều huy chương vàng nhất.
 SELECT *
 FROM `atheletes.athletes`
 WHERE sex = 'female'
 ORDER BY gold DESC
 LIMIT 10
+
 --23.	Cho biết tên VDV nữ trẻ tuổi nhất của Việt Nam có đạt huy chương (không phân biệt gold, silver hay bronze).
 SELECT *
 FROM `atheletes.athletes`
 WHERE sex = 'female' AND nationality = 'VIE'AND total > 0
 ORDER BY age ASC
 LIMIT 1
+
 --24.	Trong số những vận động viên nữ, cho biết tên VDV của nước Mỹ có số huy chương vàng nhiều thứ 3 của nước Mỹ.
 SELECT *
 FROM `atheletes.athletes`
@@ -161,6 +167,7 @@ WHERE sex = 'female' AND nationality = 'ARG'AND gold > 0
 AND weight = (SELECT MIN(weight)
               FROM `atheletes.athletes`y
               WHERE x.sex = y.sex AND x.nationality = y.nationality AND gold > 0)
+
 27.	Cho biết tên VĐV, quốc tịch của VĐV nam có trọng lượng nhẹ nhất. 
 --limit
 SELECT name,nationality
@@ -175,6 +182,7 @@ WHERE sex = 'male'
 AND weight = (SELECT MIN(weight)
               FROM `atheletes.athletes`y
               WHERE x.sex = y.sex )
+
 2.2.8.	Aggregate functions
 28.	Cho biết số hàng dữ liệu (records) có trong table.
 SELECT count(id)
@@ -208,6 +216,7 @@ SELECT DISTINCT nationality,
                 COUNT(*) OVER (PARTITION BY nationality) AS sl_vdv,
 FROM `atheletes.athletes` 
 ORDER BY sl_nu DESC, sl_nam ASC
+
 32.	Cho biết tên mỗi nước, tuổi nhỏ nhất, tuổi lớn nhất của những VDV nước đó?
 SELECT nationality,MAX(age) AS tuoilonnhat, MIN(age) AS tuoinhonhat
 FROM `atheletes.athletes` 
@@ -215,6 +224,7 @@ GROUP BY nationality
 ------------------------------------------------
 SELECT DISTINCT nationality,MAX(age) OVER (PARTITION BY nationality) AS tuoilonnhat,MIN(age) OVER (PARTITION BY nationality) AS tuoinhonhat
 FROM `atheletes.athletes` 
+
 33.	Cho biết tên nước, số lượng nam, nữ của mỗi nước theo minh họa sau:
 34.	Cho biết tên tất cả các nước và số lượng VDV nữ đạt được huy chương vàng. Các nước không có nữ đạt huy chương vàng vẫn hiện tên nước đó, nhưng lúc này số lượng sẽ là 0
 SELECT nationality, countif(sex = 'female'AND gold>0) as HCV
@@ -233,6 +243,7 @@ GROUP BY nationality
 SELECT DISTINCT nationality,COUNT(*) OVER (PARTITION BY nationality) AS HCV
 FROM `atheletes.athletes` 
 WHERE sex='female' AND gold>0
+
 36.	Cho biết nationality, số lượng từng loại huy chương (gold, silver và bronze) của những VDV nữ (sex = ‘female’) trong môn judo (sport=judo). Sắp xếp giảm dần theo từng số lượng huy chương. Nếu số lương huy chương gold bằng nhau thì sắp xếp dựa trên silver, tương tự nếu gold và silver bằng nhau sẽ xét tiếp trên bronze.
 SELECT nationality, COUNTIF(gold>0) AS HCV, COUNTIF(silver>0) AS HCB, COUNTIF(bronze>0) AS HCD
 FROM `atheletes.athletes` 
@@ -268,6 +279,7 @@ select nationality, max (weight)
 from `atheletes.athletes` 
 group by nationality 
 order by 2 DESC limit 3;
+
 	Lần lượt thực hiện các truy vấn sau sau (từ câu 37 đến câu 38) bằng 3 cách:
 •	ANY_VALUE
 •	MAX_BY/MIN_BY
@@ -324,6 +336,7 @@ FROM `atheletes.athletes`
 GROUP BY NATIONALITY
 ORDER BY 2 DESC, 3 ASC
 LIMIT 1;
+
 40.	Lần lượt thực hiện các thống kê sau:
 a.-	Thống kê tên các quốc gia, tuổi giảm dần của các VDV.
 SELECT nationality,age
@@ -353,17 +366,18 @@ FROM `atheletes.athletes`
 GROUP BY NATIONALITY
 ORDER BY 2 DESC
 LIMIT 5;
-c.-	Kết quả thực hiện tương tự như kết quả của câu b, nhưng yêu cầu thực hiện bằng cách sử dụng hàm ARRAY_AGG.
-d.-	Kết quả thực hiện tương tự như kết quả của câu b và c, nhưng yêu cầu thực hiện bằng cách sử dụng hàm ARRAY.
+
 41.	Tạo thống kê số lượng VDV theo từng chiều cao (height)
 select ROUND(Height,1) as HeightofAthletes,count(*) as Quantity
 from `atheletes.athletes`
 group by 1
 order by 1
+
 42.	Chỉ số BMI (Body Mass Index - chỉ số khối cơ thể) giúp mọi người tự kiểm tra sức khỏe dựa trên công thức: 
 BMI: cân nặng (kg) / (chiều cao (m) * chiều cao (m))
 Tra chỉ số BMI vừa có trong bảng sau người ta biết được mức độ béo phì.
 Yêu cầu: xác định số lượng VDV của từng mức đánh giá, nhưng chỉ tính cho những VDV môn cử tạ (sport= weightlifting). Kết quả truy vấn có dạng
+
 select countif((weight/(height*height))<18.5) as Underweight,
 countif((weight/(height*height)) between 18.5 and 22.99) as Normal,
 countif((weight/(height*height)) between 23 and 24.99) as Overweight,
@@ -381,6 +395,7 @@ WHERE name= 'Kelsi Worrell' AND gold>0 AND sport= 'aquatics'
 SELECT CASE WHEN COUNT(*)>=1 THEN 'Co' ELSE 'Khong' END AS TRALOI
 FROM`atheletes.athletes`
 WHERE name= 'Kelsi Worrell' AND gold>0 AND sport= 'aquatics'
+
 44.	Cho biết VĐV ‘Hoang Xuan Vinh’ của Việt Nam có đạt được huy hương vàng môn bắn súng (shooting) hay không? Trả lời ‘Có’ hoặc ‘không’.
 SELECT IF(COUNT(*)>=1,'Co','Khong') AS TRALOI
 FROM`atheletes.athletes`
@@ -389,6 +404,7 @@ WHERE name= 'Hoang Xuan Vinh' AND gold>0 AND sport= 'shooting'
 SELECT CASE WHEN COUNT(*)>=1 THEN 'Co' ELSE 'Khong' END AS TRALOI
 FROM`atheletes.athletes`
 WHERE name= 'Hoang Xuan Vinh' AND gold>0 AND sport= 'shooting'
+
 45.	Cho biết tỷ lệ VDV nữ có giải / số lượng VDV nam có giải của Việt Nam (VIE) có lớn hơn 40% hay không? Trả lời ‘Có’ hoặc ‘không’. 
 Lưu ý: cần kiểm tra trước xem số lượng VDV nam có giải của Việt Nam có >0 hay không trước khi tính toán tỷ lệ, vì nếu số lượng này =0 sẽ dẫn đến phép chia có mẫu số =0 sẽ gây lỗi.
 SELECT SO_LUONG_NAM,SO_LUONG_NU, IF(SO_LUONG_NAM=0, 'VDV nam khong co giai',IF(SO_LUONG_NU/SO_LUONG_NAM > 0.4, "Có", "Không" )) AS TRALOI
@@ -416,6 +432,7 @@ SELECT CASE WHEN countif(sex='male') = 0 THEN 'VDV nam khong co giai'
        END as TRA_LOI
 FROM `atheletes.athletes`
 WHERE total > 0 AND nationality = 'VIE'
+
 	Lần lượt thực hiện các truy vấn sau sau (từ câu 46 đến câu 48) bằng 3 cách
 •	SUM
 •	COUNT
@@ -444,6 +461,7 @@ SELECT nationality,COUNTIF(sex='female') AS soluongnu, COUNTIF(sex='male') AS so
 FROM `atheletes.athletes` 
 GROUP BY nationality
 ORDER BY nationality DESC
+
 47.	Cho biết số lượng VDV tham gia theo từng nhóm tuổi: dưới 14, từ 15-16, từ 17-18, từ 19-22 và trên 22 của mỗi nước. Thông tin gồm nationality, LessThan14, From15To16, From17To18, From19To22, OlderThan22. Gợi ý: dựa trên năm sinh và năm tham gia (2016).
 --SUM
 SELECT nationality, SUM(IF(2016-EXTRACT(YEAR FROM date_of_birth)<14,1,0)) AS LessThan14,
@@ -469,6 +487,7 @@ SELECT nationality, COUNTIF(2016-EXTRACT(YEAR FROM date_of_birth)<14) AS LessTha
                     COUNTIF(2016-EXTRACT(YEAR FROM date_of_birth) >22) AS OlderThan22
 FROM `atheletes.athletes` 
 GROUP BY nationality
+
 48.	Thực hiện thống kê gồm tên nước, số lượng VDV nữ đạt huy chương vàng của nước đó, tương tự cho huy chương bạc và đồng. Kết quả sắp xếp giảm dần theo số lượng VDV đạt huy chương vàng. 
 nationality	FemaleWithGold	FemaleWithSilver	FemaleWithBronze
 USA	74	26	35
@@ -497,6 +516,7 @@ SELECT nationality, COUNTIF(sex='female' AND gold>0) AS SL_VDV_NU_HCV,
 FROM `atheletes.athletes` 
 GROUP BY nationality
 ORDER BY SL_VDV_NU_HCV DESC
+
 2.2.10.	Subquery
 49.	Có bao nhiêu nước trong danh sách. Yêu cầu viết bằng 2 cách: có và không có sử dụng subquery
 --KO SUBQUERY
@@ -507,6 +527,7 @@ SELECT COUNT(*) AS TRALOI
 FROM (SELECT nationality
       FROM `atheletes.athletes`
       GROUP BY nationality )
+
 50.	Cho biết tên và số lượng huy chương vàng của những VDV mà những VDV này có số huy chương vàng nhiều hơn VDV có tên là ‘Usain Bolt’.
 --KO SUBQUERY
 SELECT name,gold
@@ -519,6 +540,7 @@ WHERE gold > (SELECT GOLD
               FROM `atheletes.athletes`
               WHERE NAME='Usain Bolt')
 GROUP BY name,gold
+
 51.	Cho biết tên và chiều cao của 4 VDV có chiều cao là cao nhất trong tất cả các VDV. Nếu có nhiều VDV cùng có chiều cao như VDV thứ 4 thì lấy tất cả những người này (khi đó danh sách kết quả có thể có nhiều hơn 4 VDV).
 --SUBQUERY
 SELECT name, height
@@ -529,6 +551,7 @@ WHERE height >=
       ORDER BY height DESC
       LIMIT 1 OFFSET 3)
 ORDER BY height DESC
+
 52.	Cho biết tên nước, số lượng huy chương đồng mà nước đó đạt được giống như số lượng huy chương đồng mà nước Hàn Quốc (KOR) đã đạt. Yêu cầu kết quả không có tên nước Hàn Quốc
 SELECT nationality, SUM(bronze) AS total_bronze
 FROM  `atheletes.athletes`
@@ -555,6 +578,7 @@ SELECT nationality,age
 FROM  `atheletes.athletes` 
 WHERE age=( SELECT MIN(age)
             FROM  `atheletes.athletes`)
+
 54.	a)Cho biết tên những VDV nước Mỹ có chiều cao là cao nhất trong số tất cả các VDV tham dự của các nước
 name	nationality	height
 Kevin Cordes	USA	2.21
@@ -574,6 +598,7 @@ where Y.nationality ='USA' AND height >= ( select max(height)
                                           from `athletes.athletes` )
 order by 3 desc
 limit 1
+
 /*54B.	Cho biết tên những VDV nước Mỹ có chiều cao là cao nhất trong số tất cả các VDV tham dự cua nuoc nay
 ---subquery*/
 select name, nationality, height
@@ -590,6 +615,7 @@ where Y.nationality ='USA' AND height >= ( select max(height)
                                           WHERE X.nationality = Y.nationality)
 order by 3 desc
 limit 1
+
 55.	Cho biết tên những VDV có chiều cao thấp nhất trong số những VDV đạt huy chương. Minh họa kết quả cần thực hiện:
 name	nationality	height	total
 Yan Wang	CHN	1.4	1
@@ -605,6 +631,7 @@ FROM  `atheletes.athletes`
 WHERE totaL>0 AND height=(SELECT MIN(height)
                             FROM  `atheletes.athletes` 
                             WHERE total>0)
+
 56.	Cho biết tên những nước và số lượng VDV nữ của nước đó đạt được huy chương vàng nhiều nhất so với các nước khác.
 --LIMIT
 SELECT nationality, countif(gold>0 and sex='female') as total_gold
@@ -624,8 +651,6 @@ HAVING COUNT(*)=(SELECT COUNT(*)
                     ORDER BY 1 DESC LIMIT 1)
 
 57.	Cho biết tên VDV có chiều cao thấp hơn chiều cao trung bình của tất cả VDV nước Mỹ.
-57.	Cho biết tên VDV có chiều cao thấp hơn chiều cao trung bình của tất cả VDV nước Mỹ.
-
 ---subquery
 select name, nationality, height
 from `atheletes.athletes`  X
@@ -663,6 +688,7 @@ where nationality='VIE' and height > ( select avg(height)
                 where Y.nationality ='USA')
 order by 3 desc 
 limit 1
+
 59.	Cho biết tên nước có nhiều huy chương vàng nhất.
 --SUBQUERY
 SELECT nationality,SUM(gold) AS HCV
@@ -678,6 +704,7 @@ SELECT nationality,SUM(gold) AS HCV
 FROM `atheletes.athletes` 
 GROUP BY nationality
 ORDER BY 2 DESC LIMIT 1
+
 60.	Cho biết tên những nước đạt được nhiều huy chương vàng nhất của môn golf.
 ---subquery
 
@@ -700,24 +727,7 @@ where sport='golf'
 group by 1,2
 order by 3 desc 
 limit 1
-61.	Cho biết môn thi đấu có nhiều VDV tham gia nhất.
---SUBQUERY
-SELECT sport,COUNT(*) AS TongVDV
-FROM `atheletes.athletes`
-GROUP BY 1
-HAVING COUNT(*)=(SELECT COUNT(*)
-                    FROM `atheletes.athletes`
-                    GROUP BY sport
-                    ORDER BY 1 DESC LIMIT 1)
---LIMIT
-SELECT sport,COUNT(*) AS TongVDV
-FROM `atheletes.athletes`
-GROUP BY sport
-ORDER BY 2 DESC LIMIT 1
-62.	Cho biết tên những nước tham gia nhiều môn thi đấu (sport) nhất.
-SELECT nationality COUNT(*)
-FROM `atheletes.athletes`
-GROUP BY 1
+
 61.	Cho biết môn thi đấu có nhiều VDV tham gia nhất.
 
 ---subquery
@@ -763,7 +773,6 @@ limit 1
 63.	Cho biết tên những nước có nhiều VDV không đạt huy chương nhất (tức là những VDV này có tên trong dữ liệu nhưng không đạt được bất kỳ huy chương nào trong 3 huy chương gold, silver, bronze).
 
 ---subquery
-
 select nationality, sum(total)
 from `athletes.athletes`
 group by 1
@@ -780,9 +789,7 @@ order by 2
 limit 1
 
 64.	Cho biết tên những nước mà tổng số huy chương vàng của họ lớn hơn tổng số huy chương bạc và đồng cộng lại.
-
 ---subquery
-
 select nationality, sum(gold), sum(silver), sum(bronze)
 from `athletes.athletes`
 group by 1
@@ -800,9 +807,7 @@ group by 1
 having sum(gold)> sum(silver+bronze)
 order by 1 desc
 limit 1
-
 65.	Cho biết tên nước có số lượng VDV tham gia 2 môn judo và taekwondo là nhiều nhất. 
-
 ---subquery
 
 select nationality, count(*)
